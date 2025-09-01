@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tang Nhat Minh • Policy Hub Portfolio</title>
+
+  <!-- Performance hints -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root { --radius: 12px; }
+    html, body { height: 100%; }
+    body{ font-family:'Open Sans',sans-serif; margin:0; background:#f4f7f6; color:#0f172a; }
+
+    /* Layout */
+    .dashboard-container{ display:flex; min-height:100vh; }
+    .sidebar{ width:280px; background:#fff; color:#111827; padding:20px; box-shadow:2px 0 5px rgba(0,0,0,.05); display:flex; flex-direction:column; align-items:center; }
+    .main-content{ flex-grow:1; padding:24px; background:#f9fbfd; }
+
+    /* Header (Hero) */
+    .site-header{ position:sticky; top:0; z-index:40; backdrop-filter: blur(8px); background:rgba(255,255,255,.7); border-bottom:1px solid rgba(226,232,240,.9); }
+
+    /* Sidebar details */
+    .user-profile{ display:flex; flex-direction:column; align-items:center; margin-bottom:22px; text-align:center; }
+    .profile-pic-wrapper{ position:relative; margin-bottom:10px; }
+    .profile-pic{ width:84px; height:84px; border-radius:50%; object-fit:cover; border:3px solid #6366f1; }
+    .notification-badge{ position:absolute; top:0; right:0; background:#ef4444; color:#fff; border-radius:50%; padding:2px 7px; font-size:12px; border:2px solid #fff; }
+
+    .navigation{ width:100%; }
+    .navigation ul{ list-style:none; margin:0; padding:0; }
+    .navigation li{ margin-bottom:8px; }
+    .navigation a{ display:flex; align-items:center; gap:12px; padding:12px 14px; color:#374151; text-decoration:none; border-radius:10px; transition:.25s; }
+    .navigation a:hover, .navigation li.active a{ background:#e0e7ff; color:#4f46e5; }
+
+    /* Cards & tables */
+    .card{ background:#fff; border-radius:var(--radius); box-shadow:0 10px 30px rgba(2,6,23,.06); }
+    table{ width:100%; border-collapse:collapse; margin-top:14px; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+    th, td{ border-bottom:1px solid #eef2f7; padding:12px 15px; text-align:left; }
+    th{ background:#f8fafc; color:#475569; font-weight:700; text-transform:uppercase; font-size:.8rem; letter-spacing:.02em; }
+
+    .link-chip{ display:inline-flex; align-items:center; gap:.4rem; padding:.25rem .6rem; border-radius:999px; font-size:.75rem; background:#eef2ff; color:#4338ca; transition:.2s; }
+    .status-ok{ display:inline-flex; align-items:center; gap:.35rem; padding:.2rem .5rem; border-radius:999px; font-size:.7rem; background:#ecfdf5; color:#065f46; }
+
+    /* Mobile: transform table rows to cards */
+    @media (max-width: 768px){
+      table thead{ display:none; }
+      table, tbody, tr, td{ display:block; width:100%; }
+      tr{ background:#fff; border-radius:12px; padding:14px; margin:10px 0; box-shadow:0 8px 24px rgba(2,6,23,.05); }
+      td{ border:none; padding:6px 0; }
+      td::before{ content:attr(data-label); display:block; font-size:.75rem; color:#64748b; margin-bottom:2px; }
+    }
+
+    /* Micro-interactions (disabled as requested) */
+    .hover-lift{ transition:none; }
+    .hover-lift:hover{ transform:none; box-shadow:inherit; }
+    tr:hover{ background:transparent; }
+
+    /* Chatbot */
+    .floating-chatbot-button{ position:fixed; bottom:90px; right:22px; background:#6366f1; color:#fff; border:none; border-radius:50%; width:56px; height:56px; display:flex; justify-content:center; align-items:center; font-size:1.6em; cursor:pointer; box-shadow:0 6px 20px rgba(99,102,241,.45); transition:.2s; z-index:999; }
+    .floating-chatbot-button:hover{ background:#4f46e5; transform:translateY(-3px); }
+    .modal{ display:none; position:fixed; z-index:1000; inset:0; background:rgba(0,0,0,.45); align-items:center; justify-content:center; }
+    .modal-content{ background:#fff; padding:0; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.35); position:relative; width:90%; max-width:460px; }
+    .close-button{ position:absolute; top:10px; right:15px; color:#94a3b8; font-size:28px; font-weight:700; cursor:pointer; }
+    .close-button:hover{ color:#334155; }
+
+    /* Top-right controls */
+    #themeToggle{ position:fixed; bottom:22px; right:22px; z-index:999; }
+    #navToggle{ position:fixed; top:12px; left:12px; z-index:1001; }
+
+    .hidden{ display:none; }
+
+    /* ---------- THEME-SAFE TEXT FIXES ---------- */
+    body, p, li, td, th, a, span, .text-sm, .text-xs { color: inherit; }
+
+    /* Light theme (default) */
+    body:not(.dark) { color:#000; }
+    body:not(.dark) h1,
+    body:not(.dark) h2,
+    body:not(.dark) h3,
+    body:not(.dark) .panel-title { color:#4f46e5; }
+    body:not(.dark) .link-chip,
+    body:not(.dark) .status-ok { color:#000; }
+
+    /* Dark theme */
+    body.dark { background:#0b1220; color:#fff; }
+    body.dark .sidebar{ background:#0f172a; color:#e5e7eb; box-shadow:2px 0 6px rgba(0,0,0,.35); }
+    body.dark .main-content{ background:#0b1220; }
+    body.dark .site-header{ background:rgba(15,23,42,.7); border-color:rgba(51,65,85,.8); }
+    body.dark h1,
+    body.dark h2,
+    body.dark h3,
+    body.dark .panel-title { color:#a78bfa; }
+    body.dark td, body.dark th, body.dark p, body.dark li, body.dark a, body.dark span { color:#fff; }
+    body.dark table{ background:#0f172a; box-shadow:0 2px 10px rgba(0,0,0,.35); }
+    body.dark th{ background:#111827; color:#cbd5e1; border-color:#1f2937; }
+    body.dark td{ border-color:#1f2937; }
+    body.dark .link-chip, body.dark .status-ok { color:#fff; background:#1f2937; }
+    body.dark .navigation a{ color:#cbd5e1; }
+    body.dark .navigation a:hover, body.dark .navigation li.active a{ color:#a78bfa; background:#1f2937; }
+    body.dark .site-header a{ color:#fff; }
+    body.dark .site-header a:hover{ color:#a78bfa; }
+    body.dark #overview .card{
+          background:#0f172a;
+          box-shadow:0 2px 10px rgba(0,0,0,.35);
+        }
+        body.dark #overview .card h3,
+        body.dark #overview .card h4{
+          color:#a78bfa;
+        }
+        body.dark #overview .card p,
+        body.dark #overview .card li{
+          color:#e5e7eb;
+        }
+        body.dark #overview .card .bg-slate-100{
+          background:#1f2937 !important;
+          border:1px solid #334155;
+          color:#e5e7eb;
+        }
+  </style>
+
+  <meta property="og:title" content="Tang Nhat Minh • HR Compliance • Data & AI" />
+  <meta property="og:description" content="Policy Hub portfolio with documents, dashboards, and an AI policy chatbot." />
+  <meta property="og:type" content="website" />
+</head>
+<body>
+  
+  <!-- Sticky Hero Header -->
+  <header class="site-header">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="https://via.placeholder.com/36" class="w-10 h-10 rounded-full" alt="Tang Nhat Minh" loading="lazy"/>
+        <div>
+          <p class="font-semibold">Tang Nhat Minh</p>
+          <p class="text-xs text-slate-500">HR Compliance • Data & AI</p>
+        </div>
+      </div>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a href="#overview" class="hover:text-indigo-600">About</a>
+        <a href="#documents" class="hover:text-indigo-600">Documents</a>
+        <a href="#policies" class="hover:text-indigo-600">Case Studies</a>
+        <a href="#contact" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Mobile toggles -->
+  <button id="navToggle" class="md:hidden p-2 rounded bg-indigo-600 text-white shadow" aria-label="Toggle navigation">
+    <i class="fas fa-bars"></i>
+  </button>
+  <button id="themeToggle" class="p-3 rounded-full border bg-white shadow" aria-label="Toggle dark mode">
+    <i class="fas fa-moon text-slate-700"></i>
+  </button>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar fixed md:static inset-y-0 -left-72 md:left-0 transition-all duration-300 w-72">
+      <div class="user-profile">
+        <div class="profile-pic-wrapper">
+          <img src="https://via.placeholder.com/84" alt="User Profile" class="profile-pic" loading="lazy"/>
+          <span class="notification-badge">4</span>
+        </div>
+        <div class="user-info">
+          <div class="username font-bold">Nhật Minh</div>
+          <div class="user-email text-sm text-slate-500">tangminh@cp.com.vn</div>
+        </div>
+      </div>
+
+      <nav class="navigation" aria-label="Sidebar">
+        <ul>
+          <li class="nav-item active"><a href="#" data-section="overview"><i class="fas fa-compass"></i> Overview</a></li>
+          <li class="nav-item"><a href="#" data-section="documents"><i class="fas fa-file-alt"></i> General Documents</a></li>
+          <li class="nav-item"><a href="#" data-section="policies"><i class="fas fa-building"></i> Policies by BUs</a></li>
+          <li class="nav-item"><a href="#" data-section="forms"><i class="fas fa-wpforms"></i> Form</a></li>
+          <li class="nav-item"><a href="#" data-section="law"><i class="fas fa-gavel"></i> Labor Law</a></li>
+          <li class="nav-item"><a href="#" data-section="accounts"><i class="fas fa-users"></i> Accounts</a></li>
+          <li class="nav-item"><a href="#" data-section="settings"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content w-full md:ml-0">
+      <!-- Avatars -->
+      <header class="flex justify-end items-center mb-6">
+        <div class="flex items-center gap-2 mr-2">
+          <img src="https://via.placeholder.com/35/FF5733" alt="User 1" class="avatar w-9 h-9 rounded-full border-2 border-white shadow"/>
+          <img src="https://via.placeholder.com/35/33FF57" alt="User 2" class="avatar w-9 h-9 rounded-full border-2 border-white shadow"/>
+          <img src="https://via.placeholder.com/35/3357FF" alt="User 3" class="avatar w-9 h-9 rounded-full border-2 border-white shadow"/>
+          <button class="bg-indigo-600 text-white w-9 h-9 rounded-full grid place-items-center shadow hover:bg-indigo-500" aria-label="Add user">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- ============ OVERVIEW ============ -->
+      <section id="overview" class="panel" data-section-panel>
+        <h2 class="text-2xl font-semibold mb-2" style="color:#4f46e5">Overview</h2>
+
+        <div class="card p-6 mb-6 hover-lift">
+          <h3 class="font-semibold text-lg mb-2" style="color:#4f46e5">Welcome to Nhat Minh Portfolio</h3>
+          <p>I am a detail-oriented HR Compliance and Analyst with strong expertise in monitoring business processes, auditing data accuracy, and developing compliance dashboards.</p>
+          <p class="mt-2">Skilled in data analytics using Excel, Power BI, and Python to identify trends, anomalies, and potential risks. Adept at collaborating with cross-functional teams to ensure adherence to internal policies, industry codes, and legal regulations. Proven track record in implementing digital tools to enhance transparency and efficiency in compliance monitoring.</p>
+        </div>
+
+        <!-- Case studies -->
+        <section id="case-studies" class="grid md:grid-cols-3 gap-6 my-6">
+          <article class="card p-5 hover-lift">
+            <h4 class="font-semibold mb-1" style="color:#4f46e5">Compliance Dashboard (Power BI)</h4>
+            <p class="text-sm">Automated HR KPI monitoring across BUs, reduced manual checks by 70%.</p>
+            <div class="mt-3 flex flex-wrap gap-2 text-xs">
+              <span class="px-2 py-1 rounded bg-slate-100">Power BI</span>
+              <span class="px-2 py-1 rounded bg-slate-100">Python</span>
+              <span class="px-2 py-1 rounded bg-slate-100">Azure</span>
+            </div>
+          </article>
+          <article class="card p-5 hover-lift">
+            <h4 class="font-semibold mb-1" style="color:#4f46e5">Policy Chatbot</h4>
+            <p class="text-sm">RAG over SharePoint & Azure Blob, 95%+ top-3 retrieval accuracy on internal policies.</p>
+            <div class="mt-3 flex flex-wrap gap-2 text-xs">
+              <span class="px-2 py-1 rounded bg-slate-100">Flask</span>
+              <span class="px-2 py-1 rounded bg-slate-100">LlamaIndex</span>
+              <span class="px-2 py-1 rounded bg-slate-100">ChromaDB</span>
+            </div>
+          </article>
+          <article class="card p-5 hover-lift">
+            <h4 class="font-semibold mb-1" style="color:#4f46e5">OT Compliance Rules</h4>
+            <p class="text-sm">Excel & Python rules-engine to calculate OT with legal rounding, adopted by 3 BUs.</p>
+            <div class="mt-3 flex flex-wrap gap-2 text-xs">
+              <span class="px-2 py-1 rounded bg-slate-100">Excel</span>
+              <span class="px-2 py-1 rounded bg-slate-100">Pandas</span>
+              <span class="px-2 py-1 rounded bg-slate-100">Power BI</span>
+            </div>
+          </article>
+        </section>
+
+        <!-- Work experience -->
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="card p-5 hover-lift">
+            <h3 class="text-lg font-semibold mb-2" style="color:#4f46e5">English Teaching Assistant</h3>
+            <p class="text-sm">ILA Bien Hoa — Dec 2019 → Oct 2022</p>
+            <ul class="list-disc pl-5 space-y-1 text-sm">
+              <li>Collaborated with foreign colleagues to deliver engaging lessons.</li>
+              <li>Ensured accuracy of content delivery; maintained full English environment.</li>
+            </ul>
+          </div>
+          <div class="card p-5 hover-lift">
+            <h3 class="text-lg font-semibold mb-2" style="color:#4f46e5">Human Resource Compliance</h3>
+            <p class="text-sm">CP Headquarters — Jul 2021 → Present</p>
+            <ul class="list-disc pl-5 space-y-1 text-sm">
+              <li>Audited HR data in SAP SuccessFactors; detected anomalies & risks.</li>
+              <li>Built Power BI dashboards for KPI tracking & proactive mitigation.</li>
+              <li>Deployed Microsoft 365 + Azure + SharePoint + AI Chatbot.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Template for all document-like panels -->
+      <template id="doc-table">
+        <div class="content-header-with-search flex items-center justify-between">
+          <h3 class="panel-title text-xl font-semibold" style="color:#4f46e5"></h3>
+          <div class="search-bar flex items-center gap-2">
+            <input type="text" placeholder="Search here..." aria-label="Search" class="px-3 py-2 rounded border w-64 max-w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"/>
+            <i class="fas fa-search text-slate-400"></i>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Tên văn bản</th>
+              <th>Tình trạng hiệu lực</th>
+              <th>Ngày hiệu lực</th>
+              <th>CPV - Link</th>
+              <th>CPVF - Link</th>
+              <th>AAVN - Link</th>
+              <th>Áp dụng</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="font-medium">Bộ luật lao động 2019</td>
+              <td><span class="status-ok"><i class="fas fa-check-circle"></i> Còn hiệu lực</span></td>
+              <td>01/01/2021</td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener"><i class="fas fa-link"></i> CPV 001/2023</a></td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener">CPVF 001/2023</a></td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener">AAVN 001/2023</a></td>
+              <td><span class="text-xs">All</span></td>
+            </tr>
+            <tr>
+              <td class="font-medium">Luật Công Đoàn</td>
+              <td><span class="status-ok"><i class="fas fa-check-circle"></i> Còn hiệu lực</span></td>
+              <td>26/12/2024</td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener">CPV 590/2024</a></td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener">CPVF 590/2024</a></td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener">AAVN 590/2024</a></td>
+              <td><span class="text-xs">All</span></td>
+            </tr>
+            <tr>
+              <td class="font-medium">Luật Thuế Thu Nhập Cá Nhân</td>
+              <td><span class="status-ok"><i class="fas fa-check-circle"></i> Còn hiệu lực</span></td>
+              <td>01/01/2024</td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener">CPV 070/2024</a></td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener">CPVF 070/2024</a></td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener">AAVN 070/2024</a></td>
+              <td><span class="text-xs">All</span></td>
+            </tr>
+            <tr>
+              <td class="font-medium">Cách tính thuế thu nhập cá nhân</td>
+              <td><span class="status-ok"><i class="fas fa-check-circle"></i> Còn hiệu lực</span></td>
+              <td>01/01/2024</td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener">CPV 007/2024</a></td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener">CPVF 007/2024</a></td>
+              <td><a class="link-chip" href="#" target="_blank" rel="noopener">AAVN 007/2024</a></td>
+              <td><span class="text-xs">All</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+
+      <!-- Document panels -->
+      <section id="documents" class="panel hidden" data-section-panel></section>
+      <section id="policies"  class="panel hidden" data-section-panel></section>
+      <section id="forms"     class="panel hidden" data-section-panel></section>
+      <section id="law"       class="panel hidden" data-section-panel></section>
+      <section id="accounts"  class="panel hidden" data-section-panel>
+        <h3 class="text-xl font-semibold mb-2" style="color:#4f46e5">Accounts</h3>
+        <p>Coming soon…</p>
+      </section>
+      <section id="settings"  class="panel hidden" data-section-panel>
+        <h3 class="text-xl font-semibold mb-2" style="color:#4f46e5">Settings</h3>
+        <p>Coming soon…</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- Chatbot FAB -->
+  <button class="floating-chatbot-button" id="openChatbot" aria-label="Open chatbot">
+    <i class="fas fa-comment-dots"></i>
+  </button>
+
+  <!-- Chatbot Modal -->
+  <div id="chatbotModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="chatbotTitle">
+    <div class="modal-content">
+      <span class="close-button" id="closeChatbot" aria-label="Close chatbot">&times;</span>
+      <div class="bg-white p-6 rounded-lg w-full max-w-md">
+        <h1 id="chatbotTitle" class="text-2xl font-bold mb-4 text-center" style="color:#4f46e5">Policy Chatbot</h1>
+        <div id="chatContainer" class="h-96 overflow-y-auto border p-4 mb-4 rounded-lg bg-gray-50"></div>
+        <div class="flex">
+          <input id="userInput" type="text" class="flex-1 p-2 border rounded-l-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" placeholder="Hỏi về chính sách công ty..." />
+          <button id="sendButton" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-500">Gửi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer / Contact -->
+  <footer id="contact" class="mt-10 border-t bg-white/70">
+    <div class="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-sm">© Tang Nhat Minh • Portfolio</p>
+      <div class="flex items-center gap-3">
+        <a href="mailto:tangminh@cp.com.vn" class="link-chip">Email</a>
+        <a href="https://www.linkedin.com/" target="_blank" rel="noopener" class="link-chip">LinkedIn</a>
+        <a href="/Minh_CV.pdf" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 text-sm">Download CV</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // === Dark mode toggle ===
+    (function(){
+      const key='theme';
+      const saved=localStorage.getItem(key) || 'light';
+      if(saved==='dark') document.body.classList.add('dark');
+      document.getElementById('themeToggle').onclick=()=>{
+        document.body.classList.toggle('dark');
+        localStorage.setItem(key, document.body.classList.contains('dark')?'dark':'light');
+      };
+    })();
+
+    // === Sidebar toggle (mobile) ===
+    const navToggle=document.getElementById('navToggle');
+    const sidebar=document.getElementById('sidebar');
+    navToggle.addEventListener('click',()=> sidebar.classList.toggle('-left-72'));
+    window.addEventListener('resize',()=>{ if(innerWidth>=768){ sidebar.classList.add('-left-72'); } });
+
+    // === Section switcher ===
+    const navLinks=document.querySelectorAll('.navigation a[data-section]');
+    const panels=document.querySelectorAll('[data-section-panel]');
+    function showPanel(id){
+      panels.forEach(p=>p.classList.toggle('hidden', p.id!==id));
+      document.querySelectorAll('.navigation .nav-item').forEach(li=>li.classList.remove('active'));
+      const link=document.querySelector(`.navigation a[data-section="${id}"]`);
+      if (link) link.parentElement.classList.add('active');
+      if (innerWidth < 768) sidebar.classList.add('-left-72');
+    }
+    navLinks.forEach(a=>a.addEventListener('click',e=>{ e.preventDefault(); showPanel(a.dataset.section); }));
+    showPanel('overview');
+
+    // === Build document panels from template ===
+    const tableTpl=document.getElementById('doc-table').content;
+    function mountTable(panelId, titleText){
+      const host=document.getElementById(panelId);
+      if(!host) return;
+      const frag=document.importNode(tableTpl, true);
+      frag.querySelector('.panel-title').textContent=titleText;
+      host.appendChild(frag);
+
+      // Mobile card data-labels (auto from headers)
+      const table=host.querySelector('table');
+      const headers=[...table.querySelectorAll('thead th')].map(th=>th.textContent.trim());
+      table.querySelectorAll('tbody tr').forEach(tr=>{
+        [...tr.children].forEach((td,i)=> td.setAttribute('data-label', headers[i]||''));
+      });
+
+      // Live search per panel
+      const input=host.querySelector('input[aria-label="Search"]');
+      const rows=[...host.querySelectorAll('tbody tr')];
+      input.addEventListener('input',()=>{
+        const s=input.value.toLowerCase();
+        let count=0;
+        rows.forEach(r=>{
+          const match=r.innerText.toLowerCase().includes(s);
+          r.style.display= match ? '' : 'none';
+          if (match) count++;
+        });
+        input.title = count + ' result(s)';
+      });
+    }
+    mountTable('documents','General Documents');
+    mountTable('policies','Policies by BUs');
+    mountTable('forms','Form');
+    mountTable('law','Labor Law');
+
+    // --- General Documents: append extra rows (only this tab is modified) ---
+    (function appendGeneralDocs(){
+      const documentsPanel = document.getElementById('documents');
+      if(!documentsPanel) return;
+      const tbody = documentsPanel.querySelector('tbody');
+      if(!tbody) return;
+
+      // Dữ liệu tài liệu bổ sung (giữ đúng cấu trúc cột hiện tại)
+      const docs = [
+        { name:'Bồi dưỡng bằng hiện vật làm việc có yếu tố nguy hiểm, độc hại 05.12.2013', status:'Còn hiệu lực', date:'01/07/2024', cpv:'CPV 101/2024', cpf:'CPVF 101/2024', aavn:'AAVN 101/2024', scope:'All' },
+        { name:'Nghị định 12/2022/NĐ-CP Quy định xử phạt hành chính trong lĩnh vực lao động', status:'Còn hiệu lực', date:'01/03/2024', cpv:'CPV 120/2024', cpf:'CPVF 120/2024', aavn:'AAVN 120/2024', scope:'All' },
+        { name:'Nội dung HĐLĐ & ngành, nghề ảnh hưởng chức năng sinh sản và nuôi con 01.02.2021)', status:'Còn hiệu lực', date:'15/02/2024', cpv:'CPV 134/2024', cpf:'CPVF 134/2024', aavn:'AAVN 134/2024', scope:'All' },
+        { name:'Điều kiện lao động & quan hệ lao động 01.02.2021', status:'Còn hiệu lực', date:'01/01/2025', cpv:'CPV 005/2025', cpf:'CPVF 005/2025', aavn:'AAVN 005/2025', scope:'All' },
+        { name:'Hướng dẫn cho đội viên thanh niên đội phòng cháy, chữa cháy 15.08.2021', status:'Còn hiệu lực', date:'01/04/2024', cpv:'CPV 210/2024', cpf:'CPVF 210/2024', aavn:'AAVN 210/2024', scope:'All' },
+        { name:'Tuổi nghỉ hưu 01.01.2021', status:'Còn hiệu lực', date:'10/05/2024', cpv:'CPV 305/2024', cpf:'CPVF 305/2024', aavn:'AAVN 305/2024', scope:'All' },
+        { name:'Nghị quyết 17.2022.UBTVQH15 Sổ giờ làm thêm 1 năm, 1 tháng 01.04.2022', status:'Còn hiệu lực', date:'01/06/2024', cpv:'CPV 330/2024', cpf:'CPVF 330/2024', aavn:'AAVN 330/2024', scope:'All' },
+        { name:'Nghị định 74.2024.NĐ-CP Quy định mức lương tối thiểu vùng', status:'Còn hiệu lực', date:'20/06/2024', cpv:'CPV 350/2024', cpf:'CPVF 350/2024', aavn:'AAVN 350/2024', scope:'All' },
+        { name:'Quyết định 08.2022.QĐ-TTg Hỗ trợ tiền thuê nhà cho người lao động 28.03.2022', status:'Còn hiệu lực', date:'01/01/2024', cpv:'CPV 012/2024', cpf:'CPVF 012/2024', aavn:'AAVN 012/2024', scope:'All' },
+        { name:'Data Privacy & Protection (Bảo vệ dữ liệu)', status:'Còn hiệu lực', date:'01/08/2024', cpv:'CPV 402/2024', cpf:'CPVF 402/2024', aavn:'AAVN 402/2024', scope:'All' },
+        { name:'IT Acceptable Use (Sử dụng CNTT)', status:'Còn hiệu lực', date:'15/08/2024', cpv:'CPV 415/2024', cpf:'CPVF 415/2024', aavn:'AAVN 415/2024', scope:'All' },
+        { name:'Travel & Expense Policy (Công tác & Chi phí)', status:'Còn hiệu lực', date:'01/09/2024', cpv:'CPV 430/2024', cpf:'CPVF 430/2024', aavn:'AAVN 430/2024', scope:'All' }
+      ];
+
+      // Tạo nhanh element tiện dụng
+      const el = (tag, cls, html) => {
+        const n = document.createElement(tag);
+        if(cls) n.className = cls;
+        if(html!=null) n.innerHTML = html;
+        return n;
+      };
+
+      // Thêm từng dòng
+      docs.forEach(d=>{
+        const tr = document.createElement('tr');
+
+        const tdName = el('td','font-medium', d.name);
+        const tdStatus = el('td','', `<span class="status-ok"><i class="fas fa-check-circle"></i> ${d.status}</span>`);
+        const tdDate = el('td','', d.date);
+        const tdCpv = el('td','', `<a class="link-chip" href="#" target="_blank" rel="noopener"><i class="fas fa-link"></i> ${d.cpv}</a>`);
+        const tdCpf = el('td','', `<a class="link-chip" href="#" target="_blank" rel="noopener">${d.cpf}</a>`);
+        const tdAavn = el('td','', `<a class="link-chip" href="#" target="_blank" rel="noopener">${d.aavn}</a>`);
+        const tdScope = el('td','', `<span class="text-xs">${d.scope}</span>`);
+
+        tr.append(tdName, tdStatus, tdDate, tdCpv, tdCpf, tdAavn, tdScope);
+        tbody.appendChild(tr);
+      });
+
+      // Gán lại data-label cho các dòng mới (mobile)
+      const table = documentsPanel.querySelector('table');
+      const headers = [...table.querySelectorAll('thead th')].map(th=>th.textContent.trim());
+      table.querySelectorAll('tbody tr').forEach(tr=>{
+        [...tr.children].forEach((td,i)=> td.setAttribute('data-label', headers[i]||''));
+      });
+    })();
+    // --- END append extra rows ---
+
+    // === Chatbot modal ===
+    const chatbotModal=document.getElementById('chatbotModal');
+    const openChatbotBtn=document.getElementById('openChatbot');
+    const closeChatbotBtn=document.getElementById('closeChatbot');
+    const chatContainer=document.getElementById('chatContainer');
+    const userInput=document.getElementById('userInput');
+    const sendButton=document.getElementById('sendButton');
+
+    function addMessage(sender, message){
+      const div=document.createElement('div');
+      div.className=`mb-2 ${sender==='user' ? 'text-right' : 'text-left'}`;
+      div.innerHTML=`<span class="inline-block p-2 rounded-lg ${sender==='user' ? 'bg-blue-100' : 'bg-gray-200'}">${message}</span>`;
+      chatContainer.appendChild(div);
+      chatContainer.scrollTop=chatContainer.scrollHeight;
+    }
+
+    openChatbotBtn.addEventListener('click',()=>{
+      chatbotModal.style.display='flex';
+      if(chatContainer.children.length===0){
+        addMessage('bot','Xin chào! Tôi có thể giúp gì cho bạn về các chính sách của công ty C.P.?');
+      }
+    });
+    closeChatbotBtn.addEventListener('click',()=> chatbotModal.style.display='none');
+    window.addEventListener('click',(e)=>{ if(e.target===chatbotModal) chatbotModal.style.display='none'; });
+
+    async function sendMessage(){
+      const input=(userInput.value||'').trim();
+      if(!input) return;
+      addMessage('user',input); userInput.value='';
+      const typing=document.createElement('div');
+      typing.className='mb-2 text-left';
+      typing.innerHTML='<span class="inline-block p-2 rounded-lg bg-gray-200">Đang gõ...</span>';
+      chatContainer.appendChild(typing); chatContainer.scrollTop=chatContainer.scrollHeight;
+      try{
+        const res=await fetch('/chat',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:input})});
+        const data=await res.json();
+        chatContainer.removeChild(typing);
+        addMessage('bot', data.reply || '');        
+      }catch(err){
+        chatContainer.removeChild(typing);
+        addMessage('bot','Đã xảy ra lỗi. Vui lòng thử lại sau.');
+      }
+    }
+    sendButton.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', (e)=>{ if(e.key==='Enter') sendMessage(); });
+  </script>
+</body>
+</html>
