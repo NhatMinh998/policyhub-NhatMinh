@@ -174,17 +174,16 @@
         </div>
       </div>
 
-      <nav class="navigation" aria-label="Sidebar">
-        <ul>
-          <li class="nav-item active"><a href="#" data-section="overview"><i class="fas fa-compass"></i> Overview</a></li>
-          <li class="nav-item"><a href="#" data-section="documents"><i class="fas fa-file-alt"></i> General Documents</a></li>
-          <li class="nav-item"><a href="#" data-section="policies"><i class="fas fa-building"></i> Policies by BUs</a></li>
-          <li class="nav-item"><a href="#" data-section="forms"><i class="fas fa-wpforms"></i> Form</a></li>
-          <li class="nav-item"><a href="#" data-section="law"><i class="fas fa-gavel"></i> Labor Law</a></li>
-          <li class="nav-item"><a href="#" data-section="accounts"><i class="fas fa-users"></i> Accounts</a></li>
-          <li class="nav-item"><a href="#" data-section="settings"><i class="fas fa-cog"></i> Settings</a></li>
-        </ul>
-      </nav>
+     <nav class="navigation" aria-label="Sidebar">
+       <ul>
+         <li class="nav-item active"><a href="#" data-section="overview"><i class="fas fa-compass"></i> Overview</a></li>
+         <li class="nav-item"><a href="#" data-section="documents"><i class="fas fa-file-alt"></i> Labor and Wages</a></li>
+         <li class="nav-item"><a href="#" data-section="policies"><i class="fas fa-building"></i> Insurance</a></li>
+         <li class="nav-item"><a href="#" data-section="forms"><i class="fas fa-wpforms"></i> Tax</a></li>
+         <li class="nav-item"><a href="#" data-section="accounts"><i class="fas fa-users"></i> Accounts</a></li>
+         <li class="nav-item"><a href="#" data-section="settings"><i class="fas fa-cog"></i> Settings</a></li>
+       </ul>
+     </nav>
     </aside>
 
     <!-- Main -->
@@ -438,8 +437,6 @@
     mountTable('documents','General Documents');
     mountTable('policies','Policies by BUs');
     mountTable('forms','Form');
-    mountTable('law','Labor Law');
-
     // --- General Documents: append extra rows (only this tab is modified) ---
     (function appendGeneralDocs(){
       const documentsPanel = document.getElementById('documents');
